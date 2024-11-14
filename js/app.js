@@ -1,109 +1,93 @@
-// Variables
-const carrito=document.querySelector('#carrito'),
-      listaCursos=document.querySelector('#lista-cursos'),
-      tbodyCarrito=document.querySelector('#lista-carrito tbody'),
-      vaciarCarrito=document.querySelector('#vaciar-carrito');
-let articulosCarrito=[];
+const listaCursos = document.querySelector('#lista-cursos')
+const listaCarrito = document.querySelector('#lista-carrito tbody') // Aquí el tbody va sin .
+const vaciarCarrito = document.querySelector('#vaciar-carrito')
+const carrito = document.querySelector('#carrito')
 
-cargarEventListeners();
-function cargarEventListeners() {
-// Agregar carrito
-listaCursos.addEventListener('click',agregarCurso);
 
-// Eliminar cursos
-carrito.addEventListener('click',eliminarCurso)
+arregloCarrito=[]
 
-// Vaciar carrito
-vaciarCarrito.addEventListener('click',() => {
+eventosListeners()
+function eventosListeners() {
+    // Añadir objetos al carrito
+    listaCursos.addEventListener('click',obtenerCurso)
 
-    articulosCarrito=[];
+    // Eliminar objeto carrito
+    listaCarrito.addEventListener('click',eliminarObjeto)
 
-    limpiarHTML();
+    // Vaciar carrito
+    vaciarCarrito.addEventListener('click', function () { //Hay que vaciar tanto el arreglo como limpiar la listaCarrito
+        articulosCarrito=[];
 
-})
+        limpiarHTML();
+    })
 }
 
-// Funciones
-function agregarCurso(e) {
-    e.preventDefault(); //Prevenimos que vaya al enlace vacío
+
+function obtenerCurso(e) {
+    e.preventDefault()
     if(e.target.classList.contains('agregar-carrito')) {
-        const cursoSeleccionado = e.target.parentElement.parentElement;
-        leerDatosCurso(cursoSeleccionado);
+        obtenerInfoCurso(e.target)
     }
-}
-
-function eliminarCurso(x) {
-    if(x.target.classList.contains('borrar-curso')){
-        const cursoId = x.target.getAttribute('data-id');
-
-
-        articulosCarrito = articulosCarrito.filter( curso => curso.id !== cursoId);
-
-        carritoHTML();
-    }
-}
-
-function leerDatosCurso(curso) {
-    // console.log(curso)
-
-    const infoCursos = {
-        imagen: curso.querySelector('img').src,
-        titulo: curso.querySelector('h4').textContent,
-        precio: curso.querySelector('.precio span').textContent,
-        id: curso.querySelector('a').getAttribute('data-id'),
-        cantidad: 1
-    }
-
-
-    const existe = articulosCarrito.some ( curso => curso.id === infoCursos.id)
-
-    if (existe){
-        const cursos = articulosCarrito.map(curso => {
-            if(curso.id === infoCursos.id){
-                curso.cantidad++;
-                return curso
-            } else {
-                return curso;
-            }
-    });
-
-    articulosCarrito = [...cursos]
-    } else {
-        articulosCarrito = [...articulosCarrito,infoCursos]
-    }
-
     
+
+}
+
+function obtenerInfoCurso(curso) {
+    const infoCurso = curso.parentElement.parentElement
+
+    infoCursos = {
+        img: infoCurso.querySelector('img').src,
+        titulo: infoCurso.querySelector('h4').textContent,
+        precio: infoCurso.querySelector('.precio span').textContent,
+        data_id: infoCurso.querySelector('a').getAttribute('data-id'),
+        cantidad: 1
+    }    
+
+
+    const existe = arregloCarrito.some(cursoMap => cursoMap.data_id === infoCursos.data_id)
+
+
+    if(existe){
+        arregloCarrito = arregloCarrito.map(cursoMap => { // La diferencia con el original es que crea un elemento y después tiene que añadir al arregloCarrito, si lo haces sobre el mismo arreglo no hace falta crear un nuevo arreglo
+            if(cursoMap.data_id === infoCursos.data_id) {            
+                cursoMap.cantidad++
+            } 
+            return cursoMap
+        })
+    } else {
+        arregloCarrito=[...arregloCarrito,infoCursos];
+    }
+
     carritoHTML();
 }
 
-function carritoHTML() {
-
+function carritoHTML() { 
     limpiarHTML();
-
-    articulosCarrito.forEach(curso => {
-        const {imagen, cantidad, id, precio, titulo} = curso; // De esta manera después no tenemos que usar curso en HTML, solo imagen...
-        const row = document.createElement('tr');
+    arregloCarrito.forEach(element => { //En vez de poner otra variable, lo realizamos con el arregloCarrito correspondiente.
+        const {titulo,data_id,img,precio,cantidad} = element;
+        const row = document.createElement('tr'); // Me ha faltado poner como constante row
+        // Me ha faltado poner <img con src> y <a>
         row.innerHTML = `
-            <td>
-                <img src='${imagen}' width="100">
-            </td>
+            <td><img src='${img}' width=50></td>
             <td>${titulo}</td>
             <td>${precio}</td>
             <td>${cantidad}</td>
-            <td>
-                <a href='#' class='borrar-curso' data-id='${id}'> X </a>
-            </td>
-            `;
-
-    tbodyCarrito.appendChild(row);
-})   
-
+            <td><a href='#' class='borrar-curso' data-id=${data_id}>X</a></td>        
+        `;
+        listaCarrito.appendChild(row);    
+});
 }
 
 function limpiarHTML() {
-    //tbodyCarrito.innerHTML=''
+    while(listaCarrito.firstChild) {
+        listaCarrito.removeChild(listaCarrito.firstChild)
+    }
+}
 
-    while(tbodyCarrito.firstChild){ // Más rápido
-        tbodyCarrito.removeChild(tbodyCarrito.firstChild)
+function eliminarObjeto(e){
+    if(e.target.classList.contains('borrar-curso')) {
+        const id = e.target.getAttribute('data-id')
+        arregloCarrito = arregloCarrito.filter(curso => curso.data_id !== id); // Me ha faltado reasignarlo a arregloCarrito
+        carritoHTML(); // Me ha faltado carritoHTML
     }
 }

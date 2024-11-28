@@ -1,24 +1,32 @@
-const listaCursos = document.querySelector('#lista-cursos')
-const listaCarrito = document.querySelector('#lista-carrito tbody') // Aquí el tbody va sin .
-const vaciarCarrito = document.querySelector('#vaciar-carrito')
-const carrito = document.querySelector('#carrito')
+const listaCursos = document.querySelector('#lista-cursos');
+const listaCarrito = document.querySelector('#lista-carrito tbody');// Aquí el tbody va sin .
+const vaciarCarrito = document.querySelector('#vaciar-carrito');
+const carrito = document.querySelector('#carrito');
+
+let arregloCarrito=[];
+
+// Add localStorage
+let arregloCarritoLocal = JSON.parse(localStorage.getItem('carrito')); 
+if(arregloCarritoLocal !== null){
+    arregloCarrito=[...arregloCarritoLocal];
+    carritoHTML();
+};
 
 
-arregloCarrito=[]
-
-eventosListeners()
+eventosListeners();
 function eventosListeners() {
     // Añadir objetos al carrito
-    listaCursos.addEventListener('click',obtenerCurso)
+    listaCursos.addEventListener('click',obtenerCurso);
 
     // Eliminar objeto carrito
-    listaCarrito.addEventListener('click',eliminarObjeto)
+    listaCarrito.addEventListener('click',eliminarObjeto);
 
     // Vaciar carrito
     vaciarCarrito.addEventListener('click', function () { //Hay que vaciar tanto el arreglo como limpiar la listaCarrito
         articulosCarrito=[];
 
         limpiarHTML();
+        localStorage.clear();
     })
 }
 
@@ -26,14 +34,12 @@ function eventosListeners() {
 function obtenerCurso(e) {
     e.preventDefault()
     if(e.target.classList.contains('agregar-carrito')) {
-        obtenerInfoCurso(e.target)
+        obtenerInfoCurso(e.target);
     }
-    
-
 }
 
 function obtenerInfoCurso(curso) {
-    const infoCurso = curso.parentElement.parentElement
+    const infoCurso = curso.parentElement.parentElement;
 
     infoCursos = {
         img: infoCurso.querySelector('img').src,
@@ -44,25 +50,25 @@ function obtenerInfoCurso(curso) {
     }    
 
 
-    const existe = arregloCarrito.some(cursoMap => cursoMap.data_id === infoCursos.data_id)
+    const existe = arregloCarrito.some(cursoMap => cursoMap.data_id === infoCursos.data_id);
 
 
     if(existe){
         arregloCarrito = arregloCarrito.map(cursoMap => { // La diferencia con el original es que crea un elemento y después tiene que añadir al arregloCarrito, si lo haces sobre el mismo arreglo no hace falta crear un nuevo arreglo
             if(cursoMap.data_id === infoCursos.data_id) {            
-                cursoMap.cantidad++
+                cursoMap.cantidad++;
             } 
-            return cursoMap
+            return cursoMap;
         })
     } else {
         arregloCarrito=[...arregloCarrito,infoCursos];
     }
-
     carritoHTML();
 }
 
 function carritoHTML() { 
     limpiarHTML();
+    localStorage.setItem('carrito',JSON.stringify(arregloCarrito));
     arregloCarrito.forEach(element => { //En vez de poner otra variable, lo realizamos con el arregloCarrito correspondiente.
         const {titulo,data_id,img,precio,cantidad} = element;
         const row = document.createElement('tr'); // Me ha faltado poner como constante row
@@ -75,18 +81,19 @@ function carritoHTML() {
             <td><a href='#' class='borrar-curso' data-id=${data_id}>X</a></td>        
         `;
         listaCarrito.appendChild(row);    
-});
+    });
+    
 }
 
 function limpiarHTML() {
     while(listaCarrito.firstChild) {
-        listaCarrito.removeChild(listaCarrito.firstChild)
+        listaCarrito.removeChild(listaCarrito.firstChild);
     }
 }
 
 function eliminarObjeto(e){
     if(e.target.classList.contains('borrar-curso')) {
-        const id = e.target.getAttribute('data-id')
+        const id = e.target.getAttribute('data-id');
         arregloCarrito = arregloCarrito.filter(curso => curso.data_id !== id); // Me ha faltado reasignarlo a arregloCarrito
         carritoHTML(); // Me ha faltado carritoHTML
     }
